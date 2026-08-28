@@ -10,6 +10,7 @@ G="\e[32m"
 Y="\e[33m"
 N="\e[34m"
 SCRIPT_DIR=$PWD
+MONGODB_HOST="mongodb.ritishkumarkarri.fun"
 
 if [ $USERID -ne 0 ]; then
     echo -e " $R Please run this script as root or with sudo privileges. $N" | tee -a $LOGS_FILE
@@ -71,4 +72,9 @@ systemctl daemon-reload
 systemctl enable catalogue &>> $LOGS_FILE
 systemctl start catalogue
 VALIDATE $? "Starting and enabling catalogue"
+
+cp $SCRIPT_DIR/mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGS_FILE
+dnf install mongodb-mongosh -y
+
+mongosh --host $MONGODB_HOST </app/db/master-data.js
 
