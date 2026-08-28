@@ -54,7 +54,7 @@ VALIDATE $? "Downloading catalogue zip file"
 cd /app
 VALIDATE $? "Moving to app directory"
 
-unzip /tmp/catalogue.zip
+unzip /tmp/catalogue.zip $&>> $LOGS_FILE
 VALIDATE $? "Unzip catalogue code"
 
 npm install &>> $LOGS_FILE
