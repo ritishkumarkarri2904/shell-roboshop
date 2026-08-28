@@ -2,6 +2,8 @@
 
 SG_ID="sg-05307c98778f1da82" # replace with your security group id
 AMI_ID="ami-0220d79f3f480ecf5" # replace with your ami id
+ZONE_ID="Z0195337YR0S3O171S0A" # replace with your hosted zone id
+DOMAIN_NAME="ritishkumarkarri.fun" # replace with your domain name
 
 for instance in "$@"
 do
@@ -18,17 +20,19 @@ do
             --instance-ids "$INSTANCE_ID" \
             --query 'Reservations[].Instances[].PublicIpAddress' \
             --output text)
+        RECORD_NAME="$DOMAIN_NAME"  #ritishkumarkarri.fun
     else
         IP=$(aws ec2 describe-instances \
             --instance-ids "$INSTANCE_ID" \
             --query 'Reservations[].Instances[].PrivateIpAddress' \
             --output text)
+        RECORD_NAME="$instance.$DOMAIN_NAME" #mongodb.ritishkumarkarri.fun
     fi
 
     echo "IP Address : $IP"
     
     aws route53 change-resource-record-sets \
-    --hosted-zone-id "Z0195337YR0S30171S0A" \
+    --hosted-zone-id $ZONE_ID \
     --change-batch '
     {
         "comment": "Updating a record set",
@@ -36,9 +40,9 @@ do
             {
                 "Action": "UPSERT",
                 "ResourceRecordSet": {
-                    "Name": "'"$instance"'.ritishkumarkarri.fun",
+                    "Name": "'"$RECORD_NAME"'",
                     "Type": "A",
-                    "TTL": 300,
+                    "TTL": 1,
                     "ResourceRecords": [
                         {
                             "Value": "'"$IP"'"
@@ -48,4 +52,7 @@ do
             }
         ]
     }'
+
+    echo "Record updated for $instance"
+
 done
