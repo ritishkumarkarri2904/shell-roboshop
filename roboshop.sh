@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SG_ID="sg-05307c98778f1da82" # replace with your security group id
+SG_ID="sg-076ec9ad23dab2b28'" # replace with your security group id
 AMI_ID="ami-0220d79f3f480ecf5" # replace with your ami id
 ZONE_ID="Z0195337YR0S3O171S0A" # replace with your hosted zone id
 DOMAIN_NAME="ritishkumarkarri.fun" # replace with your domain name
