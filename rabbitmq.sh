@@ -2,20 +2,21 @@
 
 USERID=$(id -u)
 LOGS_FOLDER="/var/log/shell-roboshop"
-LOGS_FILE="$LOGS_FOLDER/$0.log"
+LOGS_FILE="$LOGS_FOLDER/$(basename $0).log"
+
+# Create log directory first
+mkdir -p $LOGS_FOLDER
+
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 SCRIPT_DIR=$PWD
-MYSQL_HOST=mysql.ritishkumarkarri.fun
 
 if [ $USERID -ne 0 ]; then
     echo -e "$R Please run this script with root user access $N" | tee -a $LOGS_FILE
     exit 1
 fi
-
-mkdir -p $LOGS_FOLDER
 
 VALIDATE(){
     if [ $1 -ne 0 ]; then
@@ -26,16 +27,23 @@ VALIDATE(){
     fi
 }
 
-cp $SCRIPT_DIR/rabbitmq.repo /etc/yum.repos.d/rabbitmq.repo
+cp $SCRIPT_DIR/rabbitmq.repo /etc/yum.repos.d/rabbitmq.repo &>>$LOGS_FILE
 VALIDATE $? "Added RabbitMQ repo"
 
 dnf install rabbitmq-server -y &>>$LOGS_FILE
 VALIDATE $? "Installing RabbitMQ server"
 
 systemctl enable rabbitmq-server &>>$LOGS_FILE
-systemctl start rabbitmq-server
+systemctl start rabbitmq-server &>>$LOGS_FILE
 VALIDATE $? "Enabled and started rabbitmq"
 
-rabbitmqctl add_user roboshop roboshop123 &>>$LOGS_FILE
+rabbitmqctl list_users | grep roboshop &>>$LOGS_FILE
+if [ $? -ne 0 ]; then
+    rabbitmqctl add_user roboshop roboshop123 &>>$LOGS_FILE
+    VALIDATE $? "Created RabbitMQ user"
+else
+    echo -e "Roboshop user already exists ... $Y SKIPPING $N"
+fi
+
 rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*" &>>$LOGS_FILE
-VALIDATE $? "created user and gien permissions"
+VALIDATE $? "Given permissions to roboshop user"
